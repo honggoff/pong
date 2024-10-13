@@ -27,3 +27,5 @@ add_executable(pong pong.cpp)
 add_subdirectory(tfblib)
 
 target_link_libraries(pong tfb)
+
+add_executable(test test.cpp)
