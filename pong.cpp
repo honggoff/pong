@@ -56,7 +56,7 @@ public:
                 exit(1);
         }
 
-        std::queue<Key> unmappedKeys({Key::P1_UP, Key::P1_DOWN, Key::P2_UP, Key::P2_DOWN});
+        std::queue<Key> unmappedKeys({Key::P2_DOWN, Key::P1_UP, Key::P1_DOWN, Key::P2_UP});
         for (unsigned int code = 0; code < KEY_MAX; code++)
         {
             if (libevdev_has_event_code(mDev, EV_KEY, code))
@@ -263,8 +263,9 @@ private:
 class PongGame
 {
 public:
-    PongGame(size_t width, size_t height) :
+    PongGame(size_t width, size_t height, Input& input) :
         mField(width, height),
+        mInput(input),
         mSpeed(width * SPEED_FACTOR),
         mRand(std::random_device()())
     { }
@@ -316,6 +317,17 @@ private:
                 break;
         }
         mField.moveBall(mSpeedx, mSpeedy);
+        mInput.process();
+        int m1 = 0;
+        int m2 = 0;
+        if (mInput.isKeyActive(Input::Key::P1_DOWN))
+            mField.move1(1);
+        if (mInput.isKeyActive(Input::Key::P1_UP))
+            mField.move1(-1);
+        if (mInput.isKeyActive(Input::Key::P2_DOWN))
+            mField.move2(1);
+        if (mInput.isKeyActive(Input::Key::P2_UP))
+            mField.move2(-1);
     }
 
     void resetSpeed()
@@ -331,6 +343,7 @@ private:
     }
 
     PongField mField;
+    Input& mInput;
     const float mSpeed;
     int mSpeedx;
     int mSpeedy;
@@ -349,11 +362,6 @@ int main(int argc, char **argv)
 
     Input i(evdev);
 
-    while (true)
-    {
-        i.process();
-    }
-
     int rc;
     rc = tfb_acquire_fb(TFB_FL_NO_TTY_KD_GRAPHICS | TFB_FL_USE_DOUBLE_BUFFER, fbdev, nullptr);
 
@@ -362,7 +370,7 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    PongGame game(tfb_screen_width(), tfb_screen_height());
+    PongGame game(tfb_screen_width(), tfb_screen_height(), i);
 
     game.run();
 
