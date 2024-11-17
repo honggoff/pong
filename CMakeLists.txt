@@ -26,6 +26,9 @@ add_executable(pong pong.cpp)
 
 add_subdirectory(tfblib)
 
-target_link_libraries(pong tfb)
+find_package(PkgConfig REQUIRED)
+pkg_search_module(EVDEV REQUIRED IMPORTED_TARGET libevdev)
+
+target_link_libraries(pong tfb PkgConfig::EVDEV)
 
 add_executable(test test.cpp)
